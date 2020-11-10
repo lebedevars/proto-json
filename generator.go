@@ -77,7 +77,7 @@ func (g *jsonRpcGenerator) generate() error {
 	return nil
 }
 
-// makeCustomTypes creates Go structs and enums from all message definitions
+// makeCustomTypes creates Go structs and enums from all message definitions.
 func makeCustomTypes(messages []*protogen.Message) (string, string, error) {
 	enums := strings.Builder{}
 	structs := strings.Builder{}
@@ -109,14 +109,14 @@ func makeCustomTypes(messages []*protogen.Message) (string, string, error) {
 	return enums.String(), structs.String(), nil
 }
 
-// makeServiceDefinition creates Go struct which represents a service
+// makeServiceDefinition creates Go struct which represents a service.
 func makeServiceDefinition(service *protogen.Service) string {
 	name := service.GoName
 	name = string(unicode.ToLower(rune(name[0]))) + name[1:]
 	return fmt.Sprintf(serviceDefinition, name)
 }
 
-// makeInterface creates Go interface definition from protobuf service
+// makeInterface creates Go interface definition from protobuf service.
 func makeInterface(service *protogen.Service) string {
 	interfaceMethods := strings.Builder{}
 	for _, method := range service.Methods {
@@ -126,7 +126,7 @@ func makeInterface(service *protogen.Service) string {
 	return fmt.Sprintf(interfaceDefinition, service.GoName, interfaceMethods.String())
 }
 
-// makeEnum creates Go type from int32 and constants
+// makeEnum creates Go type from int32 and constants.
 func makeEnum(enum *protogen.Enum) string {
 	values := strings.Builder{}
 	for _, val := range enum.Values {
@@ -136,7 +136,7 @@ func makeEnum(enum *protogen.Enum) string {
 	return fmt.Sprintf(enumDefinition, enum.Desc.Name(), values.String())
 }
 
-// makeStruct makes Go struct from message
+// makeStruct makes Go struct from message.
 func makeStruct(msg *protogen.Message) (string, error) {
 	fields := strings.Builder{}
 	for _, field := range msg.Fields {
@@ -155,7 +155,7 @@ func makeStruct(msg *protogen.Message) (string, error) {
 	return fmt.Sprintf("%s%s", strings.TrimSuffix(msg.Comments.Leading.String(), "\n"), structString), nil
 }
 
-// makeType returns type of field for struct definition
+// makeType returns type of field for struct definition.
 func makeType(descriptor protoreflect.FieldDescriptor) (string, error) {
 	// maps
 	if descriptor.IsMap() {
@@ -213,7 +213,7 @@ func makeType(descriptor protoreflect.FieldDescriptor) (string, error) {
 	return scalar, nil
 }
 
-// makeSliceOfScalarType returns slice of probuf types
+// makeSliceOfScalarType returns slice of probuf types.
 func makeSliceOfScalarType(descriptor protoreflect.FieldDescriptor) (string, error) {
 	scalarType, err := makeScalarType(descriptor)
 	if err != nil {
@@ -223,7 +223,7 @@ func makeSliceOfScalarType(descriptor protoreflect.FieldDescriptor) (string, err
 	return fmt.Sprintf("[]%s", scalarType), nil
 }
 
-// makeScalarType returns Go type for scalar profobuf types
+// makeScalarType returns Go type for scalar profobuf types.
 func makeScalarType(descriptor protoreflect.FieldDescriptor) (string, error) {
 	var goType string
 	goInt32 := "int32"
