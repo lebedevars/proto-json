@@ -1,0 +1,130 @@
+run:
+  concurrency: 4
+  deadline: 2m
+  issues-exit-code: 1
+  # include test files or not, default is true
+  tests: true
+  build-tags:
+  skip-dirs:
+  skip-files:
+  #modules-download-mode: readonly
+
+# output configuration options
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+
+
+# all available settings of specific linters
+linters-settings:
+  errcheck:
+    check-type-assertions: false
+    check-blank: false
+    ignore: fmt:.*,io/ioutil:^Read.*
+    exclude:
+
+  funlen:
+    lines: 60
+    statements: 40
+
+  govet:
+    check-shadowing: true
+    settings:
+      printf: # analyzer name, run `go tool vet help` to see all analyzers
+        funcs: # run `go tool vet help printf` to see available settings for `printf` analyzer
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
+    enable:
+    enable-all: true
+    disable:
+    disable-all: false
+  golint:
+    min-confidence: 0.8
+  gofmt:
+    simplify: true
+  goimports:
+    local-prefixes:
+  gocyclo:
+    min-complexity: 15
+  gocognit:
+    min-complexity: 20
+  maligned:
+    suggest-new: true
+  dupl:
+    threshold: 200
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+  depguard:
+    list-type: blacklist
+    include-go-root: false
+    packages:
+    packages-with-error-messages:
+  misspell:
+    locale: US
+    ignore-words:
+  lll:
+    line-length: 250
+    tab-width: 1
+  unused:
+    check-exported: true
+  unparam:
+    check-exported: true
+  nakedret:
+    max-func-lines: 30
+  prealloc:
+    simple: true
+    range-loops: true
+    for-loops: true
+  gocritic:
+    enabled-checks:
+    disabled-checks:
+    enabled-tags: # diagnostic | style | performance | experimental
+      - performance
+      - diagnostic
+      - style
+      - experimental
+    settings: # settings passed to gocritic
+  godox:
+    keywords: # default keywords are TODO, BUG, and FIXME
+      - BUG
+      - FIXME
+  dogsled:
+    max-blank-identifiers: 2
+  whitespace:
+    multi-if: false
+
+linters:
+  enable:
+  enable-all: true
+  disable:
+    - interfacer       # если у переменной используется метод .String(), то заставляет принимать iface Stringer.
+    - funlen           # ограничение по длине тела функции в строках
+    - whitespace       # заставляет убирать лишние пустые строки, код превращается в слитое полотно
+    - gochecknoglobals # против глобальных переменных
+    - gochecknoinits   # против init() функций
+    - wsl         # пробелы, строки в коде, слишком гибкий и много пустых строк получится
+    - testpackage # тестовые пакеты заставляет называть по другому, начинаются траблы со сборкой
+    - nlreturn    # после break и return заставляет ставить пропуск строки, не красиво получается
+    - gci         # импорты, не учитывает автоматически локальные импорты, в настройках указывается after 3d party, а не наоборот
+    - exhaustivestruct # проверяет все ли поля структур заполнены, лишнее здесь.
+
+  disable-all: false
+  presets:
+  fast: false
+
+
+issues:
+  exclude-rules:
+
+
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+  new: false
+  new-from-rev:
+  new-from-patch:

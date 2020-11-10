@@ -16,21 +16,17 @@ const (
 		%s
 	}
 `
-
 	fieldDefinition   = "%s %s %s\n"
 	jsonTagDefinition = "`json:\"%s\"`"
-
-	enumDefinition = `
+	enumDefinition    = `
 	type %s int32
 	const (
 		%s
 	)
 `
-
 	serviceDefinition = `
 	type %s struct {}
 `
-
 	handlerDefinition   = "func %s(ctx context.Context, params json.RawMessage) (interface{}, error) { return nil, nil }\n"
 	interfaceDefinition = `
 	type %s interface {
@@ -56,41 +52,57 @@ func (g *jsonRpcGenerator) generate() error {
 			buf.WriteString(makeInterface(service))
 		}
 
-		// create Go types and constants for protobuf enums
+		// create Go types and constants for top-level enums
 		for _, enum := range file.Enums {
 			goEnum := makeEnum(enum)
 			buf.WriteString(goEnum + "\n\n")
 		}
 
-		// create Go structs for all top-level message declarations
-		for _, msg := range file.Messages {
-			// create Go structs for nested message declarations
-			for _, innerMsg := range msg.Messages {
-				str, err := makeStruct(innerMsg)
-				if err != nil {
-					return fmt.Errorf("cannot make struct: %w", err)
-				}
-
-				buf.WriteString(str)
-			}
-
-			str, err := makeStruct(msg)
-			if err != nil {
-				return fmt.Errorf("cannot make struct: %w", err)
-			}
-
-			buf.WriteString(str)
+		// create Go structs and enums from messages
+		enums, structs, err := makeCustomTypes(file.Messages)
+		if err != nil {
+			return fmt.Errorf("cannot make structs: %w", err)
 		}
+		buf.WriteString(enums)
+		buf.WriteString(structs)
 
 		filename := file.GeneratedFilenamePrefix + ".pjson.go"
 		file := g.plugin.NewGeneratedFile(filename, ".")
-		_, err := file.Write(buf.Bytes())
+		_, err = file.Write(buf.Bytes())
 		if err != nil {
 			return fmt.Errorf("write error: %w", err)
 		}
 	}
 
 	return nil
+}
+
+// makeCustomTypes creates Go structs and enums from all message definitions
+func makeCustomTypes(messages []*protogen.Message) (string, string, error) {
+	enums := strings.Builder{}
+	structs := strings.Builder{}
+	for _, msg := range messages {
+		// create nested enums
+		for _, enum := range msg.Enums {
+			enumStr := makeEnum(enum)
+			enums.WriteString(enumStr)
+		}
+
+		// create struct for current message
+		str, err := makeStruct(msg)
+		if err != nil {
+			return "", "", fmt.Errorf("cannot make struct: %w", err)
+		}
+
+		structs.WriteString(str)
+
+		// create structs for nested message declarations
+		en, str, err := makeCustomTypes(msg.Messages)
+		enums.WriteString(en)
+		structs.WriteString(str)
+	}
+
+	return enums.String(), structs.String(), nil
 }
 
 // makeServiceDefinition creates Go struct which represents a service
@@ -100,6 +112,7 @@ func makeServiceDefinition(service *protogen.Service) string {
 	return fmt.Sprintf(serviceDefinition, name)
 }
 
+// makeInterface creates Go interface definition from protobuf service
 func makeInterface(service *protogen.Service) string {
 	interfaceMethods := strings.Builder{}
 	for _, method := range service.Methods {
@@ -113,7 +126,7 @@ func makeInterface(service *protogen.Service) string {
 func makeEnum(enum *protogen.Enum) string {
 	values := strings.Builder{}
 	for _, val := range enum.Values {
-		values.WriteString(fmt.Sprintf("%s %s = %d\n", val.Desc.Name(), enum.Desc.Name(), val.Desc.Number()))
+		values.WriteString(fmt.Sprintf("%s_%s %s = %d\n", enum.Desc.Name(), val.Desc.Name(), enum.Desc.Name(), val.Desc.Number()))
 	}
 
 	return fmt.Sprintf(enumDefinition, enum.Desc.Name(), values.String())
@@ -128,11 +141,14 @@ func makeStruct(msg *protogen.Message) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("cannot make type: %w", err)
 		}
+		// write field comment
+		fields.WriteString(field.Comments.Leading.String())
 		// write Go field with json tag
 		fields.WriteString(fmt.Sprintf(fieldDefinition, field.GoName, fieldType, fmt.Sprintf(jsonTagDefinition, field.Desc.JSONName())))
 	}
 
-	return fmt.Sprintf(structDefinition, msg.Desc.Name(), fields.String()), nil
+	structString := fmt.Sprintf(structDefinition, msg.Desc.Name(), fields.String())
+	return fmt.Sprintf("%s%s", strings.TrimSuffix(msg.Comments.Leading.String(), "\n"), structString), nil
 }
 
 // makeType returns type of field for struct definition

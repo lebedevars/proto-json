@@ -18,21 +18,27 @@ message ExampleMessage1 {
     repeated string MySliceOfStrings = 2;
     map<string, SomeEnum> MyMap = 3;
     SomeEnum EnumValue = 4;
-} 
 
-/*
-ExampleMessage2 - Example Leading Comment for ExampleMessage2
-*/
+    enum NestedEnum {
+        FIRST = 0;
+    }
+    NestedEnum NestedEnumValue = 5;
+}
+
+// ExampleMessage2 - Example Leading Comment for ExampleMessage2
 message ExampleMessage2 {
+    // MyInt just some int
     int32 MyInt = 1;
-    // MyInt - Example trailing Comment
+    // ExampleNested - Example nested comment
     message ExampleNested {
         bytes data = 1;
+        message DoubleNested {
+            string why_not = 1;
+        }
+        DoubleNested why_not = 2;
     }
     repeated ExampleNested nested = 2;
 }
 
-/*
-ReturnType - Empty Structure Placeholder
-*/
+// ReturnType some return type
 message ReturnType {}
