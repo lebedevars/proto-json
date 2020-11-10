@@ -29,11 +29,6 @@ type ExampleMessage1 struct {
 	NestedEnumValue  NestedEnum          `json:"NestedEnumValue"`
 }
 
-type MyMapEntry struct {
-	Key   string   `json:"key"`
-	Value SomeEnum `json:"value"`
-}
-
 // ExampleMessage2 - Example Leading Comment for ExampleMessage2
 type ExampleMessage2 struct {
 	// MyInt just some int

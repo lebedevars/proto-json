@@ -82,6 +82,10 @@ func makeCustomTypes(messages []*protogen.Message) (string, string, error) {
 	enums := strings.Builder{}
 	structs := strings.Builder{}
 	for _, msg := range messages {
+		// skip map entries
+		if msg.Desc.IsMapEntry() {
+			continue
+		}
 		// create nested enums
 		for _, enum := range msg.Enums {
 			enumStr := makeEnum(enum)
@@ -122,7 +126,7 @@ func makeInterface(service *protogen.Service) string {
 	return fmt.Sprintf(interfaceDefinition, service.GoName, interfaceMethods.String())
 }
 
-// makeEnum creates enum
+// makeEnum creates Go type from int32 and constants
 func makeEnum(enum *protogen.Enum) string {
 	values := strings.Builder{}
 	for _, val := range enum.Values {
