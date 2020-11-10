@@ -15,4 +15,4 @@
 # vendor/
 
 .idea
-protoc-gen-protojson
+./protoc-gen-protojson
