@@ -1,4 +1,6 @@
+build:
+	go build -o . ./cmd/protoc-gen-gojrpcmodel
 run:
-	go build . && protoc --plugin protoc-gen-protojson --protojson_out=rpc *.proto
+	protoc --plugin protoc-gen-gojrpcmodel --gojrpcmodel_out=rpc *.proto
 lints:
 	golangci-lint run --fix -c ./.linters.yml

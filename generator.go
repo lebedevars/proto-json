@@ -1,10 +1,9 @@
-package main
+package generator
 
 import (
 	"bytes"
 	"fmt"
 	"strings"
-	"unicode"
 
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -24,54 +23,40 @@ const (
 		%s
 	)
 `
-	serviceDefinition = `
-	type %s struct {}
-`
-	handlerDefinition   = "func %s(ctx context.Context, params json.RawMessage) (interface{}, error) { return nil, nil }\n"
-	interfaceDefinition = `
-	type %s interface {
-		%s
-	}
-`
-	interfaceMethodDefinition = "%s(%s) (%s)\n"
 )
 
-type jsonRpcGenerator struct {
+type jsonRpcModelGenerator struct {
 	plugin *protogen.Plugin
 }
 
-func (g *jsonRpcGenerator) generate() error {
-	for _, file := range g.plugin.Files {
-		var buf bytes.Buffer
-		pkg := fmt.Sprintf("package %s\n\n", file.GoPackageName)
-		buf.Write([]byte(pkg))
+func NewJsonRpcModelGenerator(plugin *protogen.Plugin) *jsonRpcModelGenerator {
+	return &jsonRpcModelGenerator{plugin: plugin}
+}
 
-		// create services
-		for _, service := range file.Services {
-			buf.WriteString(makeServiceDefinition(service))
-			buf.WriteString(makeInterface(service))
-		}
+func (g *jsonRpcModelGenerator) Generate(file *protogen.File) error {
+	var buf bytes.Buffer
+	pkg := fmt.Sprintf("package %s\n\n", file.GoPackageName)
+	buf.Write([]byte(pkg))
 
-		// create Go types and constants for top-level enums
-		for _, enum := range file.Enums {
-			goEnum := makeEnum(enum)
-			buf.WriteString(goEnum + "\n\n")
-		}
+	// create Go types and constants for top-level enums
+	for _, enum := range file.Enums {
+		goEnum := makeEnum(enum)
+		buf.WriteString(goEnum + "\n\n")
+	}
 
-		// create Go structs and enums from messages
-		enums, structs, err := makeCustomTypes(file.Messages)
-		if err != nil {
-			return fmt.Errorf("cannot make structs: %w", err)
-		}
-		buf.WriteString(enums)
-		buf.WriteString(structs)
+	// create Go structs and enums from messages
+	enums, structs, err := makeCustomTypes(file.Messages)
+	if err != nil {
+		return fmt.Errorf("cannot make structs: %w", err)
+	}
+	buf.WriteString(enums)
+	buf.WriteString(structs)
 
-		filename := file.GeneratedFilenamePrefix + ".pjson.go"
-		file := g.plugin.NewGeneratedFile(filename, ".")
-		_, err = file.Write(buf.Bytes())
-		if err != nil {
-			return fmt.Errorf("write error: %w", err)
-		}
+	filename := file.GeneratedFilenamePrefix + ".pjson.go"
+	newFile := g.plugin.NewGeneratedFile(filename, ".")
+	_, err = newFile.Write(buf.Bytes())
+	if err != nil {
+		return fmt.Errorf("write error: %w", err)
 	}
 
 	return nil
@@ -107,23 +92,6 @@ func makeCustomTypes(messages []*protogen.Message) (string, string, error) {
 	}
 
 	return enums.String(), structs.String(), nil
-}
-
-// makeServiceDefinition creates Go struct which represents a service.
-func makeServiceDefinition(service *protogen.Service) string {
-	name := service.GoName
-	name = string(unicode.ToLower(rune(name[0]))) + name[1:]
-	return fmt.Sprintf(serviceDefinition, name)
-}
-
-// makeInterface creates Go interface definition from protobuf service.
-func makeInterface(service *protogen.Service) string {
-	interfaceMethods := strings.Builder{}
-	for _, method := range service.Methods {
-		interfaceMethods.WriteString(fmt.Sprintf(interfaceMethodDefinition, method.GoName, method.Input.Desc.Name(), method.Output.Desc.Name()))
-	}
-
-	return fmt.Sprintf(interfaceDefinition, service.GoName, interfaceMethods.String())
 }
 
 // makeEnum creates Go type from int32 and constants.
