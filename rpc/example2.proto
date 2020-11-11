@@ -1,6 +1,6 @@
 syntax = "proto3";
-option go_package = "protoc-gen-protojson/rpc";
-import "example.proto";
+option go_package = "rpc";
+import "rpc/example.proto";
 
 package rpc;
 

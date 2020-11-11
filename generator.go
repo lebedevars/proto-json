@@ -1,7 +1,6 @@
 package generator
 
 import (
-	"bytes"
 	"fmt"
 	"strings"
 
@@ -34,14 +33,16 @@ func NewJsonRpcModelGenerator(plugin *protogen.Plugin) *jsonRpcModelGenerator {
 }
 
 func (g *jsonRpcModelGenerator) Generate(file *protogen.File) error {
-	var buf bytes.Buffer
-	pkg := fmt.Sprintf("package %s\n\n", file.GoPackageName)
-	buf.Write([]byte(pkg))
+	// create output file
+	filename := file.GeneratedFilenamePrefix + ".pjson.go"
+	newFile := g.plugin.NewGeneratedFile(filename, ".")
+	pkg := fmt.Sprintf("package %s\n", file.GoPackageName)
+	newFile.P(pkg)
 
 	// create Go types and constants for top-level enums
 	for _, enum := range file.Enums {
 		goEnum := makeEnum(enum)
-		buf.WriteString(goEnum + "\n\n")
+		newFile.P(goEnum + "\n")
 	}
 
 	// create Go structs and enums from messages
@@ -49,15 +50,8 @@ func (g *jsonRpcModelGenerator) Generate(file *protogen.File) error {
 	if err != nil {
 		return fmt.Errorf("cannot make structs: %w", err)
 	}
-	buf.WriteString(enums)
-	buf.WriteString(structs)
-
-	filename := file.GeneratedFilenamePrefix + ".pjson.go"
-	newFile := g.plugin.NewGeneratedFile(filename, ".")
-	_, err = newFile.Write(buf.Bytes())
-	if err != nil {
-		return fmt.Errorf("write error: %w", err)
-	}
+	newFile.P(enums)
+	newFile.P(structs)
 
 	return nil
 }

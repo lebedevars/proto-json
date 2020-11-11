@@ -1,5 +1,5 @@
 syntax = "proto3";
-option go_package = "protoc-gen-protojson/rpc";
+option go_package = "rpc";
 
 package rpc;
 
