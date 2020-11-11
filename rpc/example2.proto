@@ -4,7 +4,6 @@ import "rpc/example.proto";
 
 package rpc;
 
-service ExampleService2 {
-    rpc ExampleCall1(ExampleMessage1) returns(ReturnType) {}
-    rpc ExampleCall2(ExampleMessage2) returns(ReturnType) {}
+message IUseImports {
+    ExampleMessage1 this_is_an_import = 1;
 }
