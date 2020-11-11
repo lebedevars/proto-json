@@ -34,7 +34,8 @@ func NewJsonRpcModelGenerator(plugin *protogen.Plugin) *jsonRpcModelGenerator {
 
 func (g *jsonRpcModelGenerator) Generate(file *protogen.File) error {
 	// create output file
-	filename := file.GeneratedFilenamePrefix + ".pjson.go"
+	filename := file.GeneratedFilenamePrefix[strings.LastIndex(file.GeneratedFilenamePrefix, "/")+1:] + ".pjson.go"
+	filename = fmt.Sprintf("%s/%s", file.GoPackageName, filename)
 	newFile := g.plugin.NewGeneratedFile(filename, ".")
 	pkg := fmt.Sprintf("package %s\n", file.GoPackageName)
 	newFile.P(pkg)

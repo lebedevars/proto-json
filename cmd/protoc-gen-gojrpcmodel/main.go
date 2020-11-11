@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	generator "protoc-gen-protojson"
 
+	generator "github.com/lebedevars/proto-json"
 	"google.golang.org/protobuf/compiler/protogen"
 )
 

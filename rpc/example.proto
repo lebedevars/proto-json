@@ -1,12 +1,7 @@
 syntax = "proto3";
-option go_package = "rpc";
+option go_package = "github.com/lebedevars/proto-json/rpc";
 
 package rpc;
-
-service ExampleService {
-    rpc ExampleCall1(ExampleMessage1) returns(ReturnType) {}
-    rpc ExampleCall2(ExampleMessage2) returns(ReturnType) {}
-}
 
 enum SomeEnum {
     FIRST = 0;

@@ -1,4 +1,4 @@
-module protoc-gen-protojson
+module github.com/lebedevars/proto-json
 
 go 1.15
 

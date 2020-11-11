@@ -1,0 +1,8 @@
+syntax = "proto3";
+option go_package = "github.com/lebedevars/proto-json/utils";
+
+import "rpc/example.proto";
+
+message IUseImports {
+    ExampleMessage1 this_is_an_import = 1;
+}
